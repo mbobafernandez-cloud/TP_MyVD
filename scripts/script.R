@@ -1,5 +1,6 @@
 # =============================================================================
-# TP5 - APRENDER 2023 - PRIMARIA
+# TP ENGLOBADOR- Yazmin Dellacasa, Martina Boba Fernandez, Naiara Bustos Diaz. 
+
 # Preguntas de investigación:
 #   1. ¿Qué relación hay entre capacidad económica y desempeño académico?
 #   2. Controlando por cap. económica: ¿tener libros en casa mejora el desempeño en Lengua?
@@ -7,16 +8,19 @@
 #   4. ¿La diferencia entre clases sociales afecta en el bullying/discriminación?
 # =============================================================================
 
+#cargamos librerias: 
+
 library(haven)
 library(dplyr)
 library(ggplot2)
-library(here)   # Para manejo de rutas portátiles
-library(tidyr)  # Para pivot_longer en la sección de gráficos
+library(here)   
+library(tidyr)  
 
 dir.create(here("outputs"), showWarnings = FALSE) # Crea carpeta de salida si no existe
 
 # Carga de la base desde la carpeta /data
 
+#!!! ACLARACION: 
 #LA BASE ESTA SUBIDA EN LA CARPETA DE DRIVE DONDE ESTA EL INFORME, PORQUE ES MUY PESADA PARA GITHUB. 
 #PARA CORRER EL CODIGO HAY Q DESCARGAR LA BASE "aprender_2023.dta" 
 #Y AGREGARLA MANUALMENTE A LA CARPETA "data". 
@@ -159,7 +163,7 @@ cat("Observaciones totales:", nrow(nueva_base), "\n\n")
 
 
 # ------------------------------------------------------------
-# 4.1 FRECUENCIAS DE VARIABLES CLAVE
+# 1) FRECUENCIAS DE VARIABLES CLAVE
 # ------------------------------------------------------------
 
 cat("----- Desempeño en Lengua (1=Bajo, 2=Básico, 3=Satisfactorio, 4=Avanzado) -----\n")
@@ -185,7 +189,7 @@ print(table(nueva_base$nse_cuartil, useNA = "ifany"))
 
 
 # ------------------------------------------------------------
-# 4.2 ESTADÍSTICAS DESCRIPTIVAS DE VARIABLES CONTINUAS
+# 2) ESTADÍSTICAS DESCRIPTIVAS DE  VARIABLES CONTINUAS
 # ------------------------------------------------------------
 
 cat("\n----- Resumen puntaje Lengua -----\n")
@@ -199,7 +203,7 @@ print(summary(nueva_base$nse_proxy))
 
 
 # ------------------------------------------------------------
-# 4.3 HISTOGRAMAS
+# 3) HISTOGRAMAS (copiados en el informe)
 # ------------------------------------------------------------
 
 hist(nueva_base$lpuntaje,
@@ -226,7 +230,7 @@ png(here("outputs", "hist_nse.png"), width = 800, height = 600)
 hist(nueva_base$nse_proxy, main = "Distribución del proxy de NSE", xlab = "NSE (estandarizado)", col = "seagreen", border = "white")
 dev.off()
 # ------------------------------------------------------------
-# 4.4 CORRELACIONES
+# 4) CORRELACIONES
 # ------------------------------------------------------------
 
 
@@ -236,7 +240,7 @@ cor_vars <- nueva_base %>%
   cor(use = "complete.obs")
 print(round(cor_vars, 2))
 # ------------------------------------------------------------
-# 4.5 TABLA: DESEMPEÑO SEGÚN NSE  (P1)
+# 5) TABLA: DESEMPEÑO SEGÚN NSE  (P1)
 # ------------------------------------------------------------
 
 cat("\n----- Puntaje promedio de Lengua y Matemática por cuartil NSE -----\n")
@@ -252,7 +256,7 @@ print(tab_nse)
 
 
 # ------------------------------------------------------------
-# 4.6 TABLA: DESEMPEÑO EN LENGUA SEGÚN LIBROS  (P2)
+# 6) TABLA: DESEMPEÑO EN LENGUA SEGÚN LIBROS  (P2)
 # ------------------------------------------------------------
 
 cat("\n----- Puntaje promedio de Lengua según libros en el hogar -----\n")
@@ -269,7 +273,7 @@ print(tab_libros)
 
 
 # ------------------------------------------------------------
-# 4.7 TABLA: DESEMPEÑO SEGÚN REDES SOCIALES  (P3)
+# 7) TABLA: DESEMPEÑO SEGÚN REDES SOCIALES  (P3)
 # ------------------------------------------------------------
 
 cat("\n----- Puntaje promedio de Lengua y Matemática según uso de redes -----\n")
@@ -286,7 +290,7 @@ print(tab_redes)
 
 
 # ------------------------------------------------------------
-# 4.8 TABLA: BULLYING Y DISCRIMINACIÓN SEGÚN NSE  (P4)
+# 8) TABLA: BULLYING Y DISCRIMINACIÓN SEGÚN NSE  (P4)
 # ------------------------------------------------------------
 
 cat("\n----- Discriminación y bullying según cuartil NSE -----\n")
@@ -301,7 +305,7 @@ tab_bullying <- nueva_base %>%
 print(tab_bullying)
 
 # ------------------------------------------------------------
-# 4.9 GRÁFICOS
+# SECCION 5: GRÁFICOS (copiados en el informe)
 # ------------------------------------------------------------
 
 # P1: Boxplot puntaje Lengua por NSE
