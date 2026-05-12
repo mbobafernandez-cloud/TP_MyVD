@@ -16,12 +16,20 @@ library(tidyr)  # Para pivot_longer en la sección de gráficos
 dir.create(here("outputs"), showWarnings = FALSE) # Crea carpeta de salida si no existe
 
 # Carga de la base desde la carpeta /data
+
+#LA BASE ESTA SUBIDA EN LA CARPETA DE DRIVE DONDE ESTA EL INFORME, PORQUE ES MUY PESADA PARA GITHUB. 
+#PARA CORRER EL CODIGO HAY Q DESCARGAR LA BASE "aprender_2023.dta" 
+#Y AGREGARLA MANUALMENTE A LA CARPETA "data". 
+
+
 path_base <- here("data", "aprender_2023.dta")
 base <- read_dta(path_base)
 
 # =============================================================================
 # SECCIÓN 1: CONSTRUCCIÓN DE LA BASE DE INTERÉS
 # =============================================================================
+
+#seleccionamos las variables de interes y creamos una nueva base 
 
 nueva_base <- base %>%
   select(
@@ -54,7 +62,7 @@ nueva_base <- base %>%
     robo            = apb38c, # Te quitaron o rompieron cosas
     
     # Variables de desempeño
-    ldesemp  = ldesemp,
+    ldesemp  = ldesemp, #desempeño en la prueba de lengua 
     mdesemp  = mdesemp,
     lpuntaje = lpuntaje,
     mpuntaje = mpuntaje
@@ -64,6 +72,8 @@ nueva_base <- base %>%
 # =============================================================================
 # SECCIÓN 2: TRANSFORMACIÓN Y LIMPIEZA DE VARIABLES
 # =============================================================================
+
+# Con el mutate() transformamos las variables a binarias y eliminamos algunos valores negativos
 
 nueva_base <- nueva_base %>%
   mutate(
@@ -105,7 +115,7 @@ nueva_base <- nueva_base %>%
       robo %in% c(3, 4) ~ 0,
       TRUE ~ NA_real_),
     
-    # --- Dummies de desempeño ---
+    # --- Dummies de desempeño: hacemos q el desempeño de lengua y matematica sean bianrias ---
     ldesemp_avanzado = ifelse(ldesemp == 4, 1, ifelse(ldesemp > 0, 0, NA)),
     mdesemp_avanzado = ifelse(mdesemp == 4, 1, ifelse(mdesemp > 0, 0, NA)),
     ldesemp_bajo     = ifelse(ldesemp == 1, 1, ifelse(ldesemp > 0, 0, NA)),
@@ -116,7 +126,7 @@ nueva_base <- nueva_base %>%
 # =============================================================================
 # SECCIÓN 3: CONSTRUCCIÓN DEL PROXY DE NSE
 # =============================================================================
-# NSE_puntaje viene vacío en el dataset, entonces construimos nuestro propio índice.
+# NSE_puntaje viene vacío en el dataset (osea son todos NA), entonces construimos nuestro propio índice.
 # Estandarizamos cada variable (media 0, desvío 1) para que todas pesen igual,
 # y promediamos. Mayor valor = NSE más alto.
 
