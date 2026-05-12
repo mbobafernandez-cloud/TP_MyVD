@@ -21,10 +21,7 @@ dir.create(here("outputs"), showWarnings = FALSE) # Crea carpeta de salida si no
 # Carga de la base desde la carpeta /data
 
 #!!! ACLARACION: 
-#LA BASE ESTA SUBIDA EN LA CARPETA DE DRIVE DONDE ESTA EL INFORME, PORQUE ES MUY PESADA PARA GITHUB. 
-#PARA CORRER EL CODIGO HAY Q DESCARGAR LA BASE "aprender_2023.dta" 
-#Y AGREGARLA MANUALMENTE A LA CARPETA "data". 
-
+#LA BASE NO ESTA SUBIDA PORQUE ES MUY PESADA PARA GITHUB. 
 
 path_base <- here("data", "aprender_2023.dta")
 base <- read_dta(path_base)
