@@ -365,3 +365,323 @@ graf_bullying <- tab_bullying %>%
         plot.title = element_text(face = "bold", hjust = 0.5))
 graf_bullying
 ggsave(here("outputs", "graf_bullying.png"), plot = graf_bullying, width = 10, height = 6)
+
+# -----------------------------------------------------------------------------
+
+# SECCIÓN 6: MODELOS DE REGRESIÓN
+# =============================================================================
+
+library(stargazer)
+
+# -----------------------------------------------------------------------------
+# LENGUA: modelos acumulativos OLS y Logit
+# Modelo 1: solo NSE
+# Modelo 2: NSE + libros
+# Modelo 3: NSE + libros + redes
+# -----------------------------------------------------------------------------
+
+# Logit — variable dependiente: alcanzó nivel avanzado en Lengua (0/1)
+logit_l1 <- glm(ldesemp_avanzado ~ nse_proxy + sexo + ed_madre + ed_padre,
+                data = nueva_base, family = binomial("logit"))
+
+logit_l2 <- glm(ldesemp_avanzado ~ nse_proxy + libros + sexo + ed_madre + ed_padre,
+                data = nueva_base, family = binomial("logit"))
+
+logit_l3 <- glm(ldesemp_avanzado ~ nse_proxy + libros + redes + sexo + ed_madre + ed_padre,
+                data = nueva_base, family = binomial("logit"))
+
+stargazer(logit_l1, logit_l2, logit_l3,
+          type = "text",
+          title = "Logit — Nivel avanzado en Lengua",
+          column.labels = c("Solo NSE", "NSE + Libros", "NSE + Libros + Redes"),
+          covariate.labels = c("NSE proxy", "Libros en el hogar", "Usa redes sociales",
+                               "Sexo", "Ed. madre", "Ed. padre"),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          no.space = TRUE)
+
+
+# -----------------------------------------------------------------------------
+# MATEMÁTICA: misma estructura
+# -----------------------------------------------------------------------------
+
+ols_m1 <- lm(mpuntaje ~ nse_proxy + sexo + ed_madre + ed_padre,
+             data = nueva_base)
+
+ols_m2 <- lm(mpuntaje ~ nse_proxy + libros + sexo + ed_madre + ed_padre,
+             data = nueva_base)
+
+ols_m3 <- lm(mpuntaje ~ nse_proxy + libros + redes + sexo + ed_madre + ed_padre,
+             data = nueva_base)
+
+stargazer(ols_m1, ols_m2, ols_m3,
+          type = "text",
+          title = "OLS — Puntaje de Matemática",
+          column.labels = c("Solo NSE", "NSE + Libros", "NSE + Libros + Redes"),
+          covariate.labels = c("NSE proxy", "Libros en el hogar", "Usa redes sociales",
+                               "Sexo", "Ed. madre", "Ed. padre"),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          no.space = TRUE)
+
+
+logit_m1 <- glm(mdesemp_avanzado ~ nse_proxy + sexo + ed_madre + ed_padre,
+                data = nueva_base, family = binomial("logit"))
+
+logit_m2 <- glm(mdesemp_avanzado ~ nse_proxy + libros + sexo + ed_madre + ed_padre,
+                data = nueva_base, family = binomial("logit"))
+
+logit_m3 <- glm(mdesemp_avanzado ~ nse_proxy + libros + redes + sexo + ed_madre + ed_padre,
+                data = nueva_base, family = binomial("logit"))
+
+stargazer(logit_m1, logit_m2, logit_m3,
+          type = "text",
+          title = "Logit — Nivel avanzado en Matemática",
+          column.labels = c("Solo NSE", "NSE + Libros", "NSE + Libros + Redes"),
+          covariate.labels = c("NSE proxy", "Libros en el hogar", "Usa redes sociales",
+                               "Sexo", "Ed. madre", "Ed. padre"),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          no.space = TRUE)
+
+
+# -----------------------------------------------------------------------------
+# P4: NSE y violencia escolar (solo logit, dependientes son binarias)
+# -----------------------------------------------------------------------------
+
+logit_p4_disc  <- glm(discriminacion       ~ nse_proxy + sexo + ed_madre + ed_padre,
+                      data = nueva_base, family = binomial("logit"))
+
+logit_p4_bully <- glm(bullying_fisico_frec ~ nse_proxy + sexo + ed_madre + ed_padre,
+                      data = nueva_base, family = binomial("logit"))
+
+stargazer(logit_p4_disc, logit_p4_bully,
+          type = "text",
+          title = "Logit — Discriminación y bullying según NSE",
+          column.labels = c("Discriminación", "Bullying físico frecuente"),
+          covariate.labels = c("NSE proxy", "Sexo", "Ed. madre", "Ed. padre"),
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          no.space = TRUE)
+
+
+
+
+# =============================================================================
+# PREDICCIONES — Logit nivel avanzado en Lengua (Modelo 3)
+# =============================================================================
+
+# Valores de referencia: media o moda de los controles
+media_nse    <- mean(nueva_base$nse_proxy, na.rm = TRUE)   # cercano a 0
+media_madre  <- median(nueva_base$ed_madre, na.rm = TRUE)
+media_padre  <- median(nueva_base$ed_padre, na.rm = TRUE)
+
+# -----------------------------------------------------------------------------
+# PREDICCIÓN 1: efecto del NSE sobre prob. de nivel avanzado
+# (libros y redes fijos en su mediana)
+# -----------------------------------------------------------------------------
+
+pred_nse <- data.frame(
+  nse_proxy = seq(
+    quantile(nueva_base$nse_proxy, 0.05, na.rm = TRUE),
+    quantile(nueva_base$nse_proxy, 0.95, na.rm = TRUE),
+    length.out = 100
+  ),
+  libros    = median(nueva_base$libros, na.rm = TRUE),
+  redes     = 1,   # asumimos que usa redes (moda)
+  sexo      = 0,   # mujer
+  ed_madre  = media_madre,
+  ed_padre  = media_padre
+)
+
+pred_nse$prob <- predict(logit_l3, newdata = pred_nse, type = "response")
+
+ggplot(pred_nse, aes(x = nse_proxy, y = prob)) +
+  geom_line(linewidth = 1, color = "steelblue") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 1)) +
+  labs(
+    title    = "Probabilidad de nivel avanzado en Lengua según NSE",
+    subtitle = "Libros y redes fijos en su mediana, sexo femenino",
+    x        = "NSE proxy (estandarizado)",
+    y        = "Probabilidad de nivel avanzado"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+
+
+# -----------------------------------------------------------------------------
+# PREDICCIÓN 2: efecto de los libros sobre prob. de nivel avanzado
+# (NSE fijo en su media)
+# -----------------------------------------------------------------------------
+
+pred_libros <- data.frame(
+  libros    = 1:6,
+  nse_proxy = media_nse,
+  redes     = 1,
+  sexo      = 0,
+  ed_madre  = media_madre,
+  ed_padre  = media_padre
+)
+
+pred_libros$prob <- predict(logit_l3, newdata = pred_libros, type = "response")
+
+pred_libros$libros_label <- factor(pred_libros$libros,
+                                   labels = c("Sin libros", "1-5", "6-20", "21-50", "51-100", "+100"))
+
+ggplot(pred_libros, aes(x = libros_label, y = prob)) +
+  geom_col(fill = "steelblue", alpha = 0.85) +
+  geom_text(aes(label = paste0(round(prob * 100, 1), "%")),
+            vjust = -0.5, size = 3.5) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 0.5)) +
+  labs(
+    title    = "Probabilidad de nivel avanzado en Lengua según libros en el hogar",
+    subtitle = "NSE fijo en su media, sexo femenino",
+    x        = "Libros en el hogar",
+    y        = "Probabilidad de nivel avanzado"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+
+
+# -----------------------------------------------------------------------------
+# PREDICCIÓN 3: efecto de las redes según NSE
+# Compara "usa redes" vs "no usa redes" a lo largo del rango de NSE
+# -----------------------------------------------------------------------------
+
+pred_redes <- expand.grid(
+  nse_proxy = seq(
+    quantile(nueva_base$nse_proxy, 0.05, na.rm = TRUE),
+    quantile(nueva_base$nse_proxy, 0.95, na.rm = TRUE),
+    length.out = 100
+  ),
+  redes    = c(0, 1),
+  libros   = median(nueva_base$libros, na.rm = TRUE),
+  sexo     = 0,
+  ed_madre = media_madre,
+  ed_padre = media_padre
+)
+
+pred_redes$prob       <- predict(logit_l3, newdata = pred_redes, type = "response")
+pred_redes$redes_label <- ifelse(pred_redes$redes == 1, "Usa redes", "No usa redes")
+
+ggplot(pred_redes, aes(x = nse_proxy, y = prob, color = redes_label)) +
+  geom_line(linewidth = 1) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 1)) +
+  scale_color_manual(values = c("Usa redes" = "steelblue", "No usa redes" = "coral")) +
+  labs(
+    title    = "Probabilidad de nivel avanzado en Lengua: redes vs. no redes",
+    subtitle = "Libros fijos en su mediana, sexo femenino",
+    x        = "NSE proxy (estandarizado)",
+    y        = "Probabilidad de nivel avanzado",
+    color    = ""
+  ) +
+  theme_minimal() +
+  theme(plot.title    = element_text(face = "bold", hjust = 0.5),
+        legend.position = "bottom")
+
+
+
+# =============================================================================
+# PREDICCIONES — Logit nivel avanzado en Matemática (Modelo 3)
+# =============================================================================
+
+media_nse   <- mean(nueva_base$nse_proxy, na.rm = TRUE)
+media_madre <- median(nueva_base$ed_madre, na.rm = TRUE)
+media_padre <- median(nueva_base$ed_padre, na.rm = TRUE)
+
+# -----------------------------------------------------------------------------
+# PREDICCIÓN 1: efecto del NSE sobre prob. de nivel avanzado en Matemática
+# -----------------------------------------------------------------------------
+
+pred_nse_m <- data.frame(
+  nse_proxy = seq(
+    quantile(nueva_base$nse_proxy, 0.05, na.rm = TRUE),
+    quantile(nueva_base$nse_proxy, 0.95, na.rm = TRUE),
+    length.out = 100
+  ),
+  libros   = median(nueva_base$libros, na.rm = TRUE),
+  redes    = 1,
+  sexo     = 1,   # varón porque en Mat. los varones tienen mejor desempeño
+  ed_madre = media_madre,
+  ed_padre = media_padre
+)
+
+pred_nse_m$prob <- predict(logit_m3, newdata = pred_nse_m, type = "response")
+
+ggplot(pred_nse_m, aes(x = nse_proxy, y = prob)) +
+  geom_line(linewidth = 1, color = "coral") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 1)) +
+  labs(
+    title    = "Probabilidad de nivel avanzado en Matemática según NSE",
+    subtitle = "Libros y redes fijos en su mediana, sexo masculino",
+    x        = "NSE proxy (estandarizado)",
+    y        = "Probabilidad de nivel avanzado"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+
+
+# -----------------------------------------------------------------------------
+# PREDICCIÓN 2: efecto de los libros en Matemática (controlando NSE)
+# -----------------------------------------------------------------------------
+
+pred_libros_m <- data.frame(
+  libros    = 1:6,
+  nse_proxy = media_nse,
+  redes     = 1,
+  sexo      = 1,
+  ed_madre  = media_madre,
+  ed_padre  = media_padre
+)
+
+pred_libros_m$prob <- predict(logit_m3, newdata = pred_libros_m, type = "response")
+
+pred_libros_m$libros_label <- factor(pred_libros_m$libros,
+                                     labels = c("Sin libros", "1-5", "6-20", "21-50", "51-100", "+100"))
+
+ggplot(pred_libros_m, aes(x = libros_label, y = prob)) +
+  geom_col(fill = "coral", alpha = 0.85) +
+  geom_text(aes(label = paste0(round(prob * 100, 1), "%")),
+            vjust = -0.5, size = 3.5) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 0.5)) +
+  labs(
+    title    = "Probabilidad de nivel avanzado en Matemática según libros en el hogar",
+    subtitle = "NSE fijo en su media, sexo masculino",
+    x        = "Libros en el hogar",
+    y        = "Probabilidad de nivel avanzado"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
+
+
+# -----------------------------------------------------------------------------
+# PREDICCIÓN 3: redes vs no redes en Matemática a lo largo del NSE
+# (spoiler: las líneas van a estar muy juntas porque redes no es significativo)
+# -----------------------------------------------------------------------------
+
+pred_redes_m <- expand.grid(
+  nse_proxy = seq(
+    quantile(nueva_base$nse_proxy, 0.05, na.rm = TRUE),
+    quantile(nueva_base$nse_proxy, 0.95, na.rm = TRUE),
+    length.out = 100
+  ),
+  redes    = c(0, 1),
+  libros   = median(nueva_base$libros, na.rm = TRUE),
+  sexo     = 1,
+  ed_madre = media_madre,
+  ed_padre = media_padre
+)
+
+pred_redes_m$prob        <- predict(logit_m3, newdata = pred_redes_m, type = "response")
+pred_redes_m$redes_label <- ifelse(pred_redes_m$redes == 1, "Usa redes", "No usa redes")
+
+ggplot(pred_redes_m, aes(x = nse_proxy, y = prob, color = redes_label)) +
+  geom_line(linewidth = 1) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(0, 1)) +
+  scale_color_manual(values = c("Usa redes" = "coral", "No usa redes" = "steelblue")) +
+  labs(
+    title    = "Probabilidad de nivel avanzado en Matemática: redes vs. no redes",
+    subtitle = "Libros fijos en su mediana, sexo masculino",
+    x        = "NSE proxy (estandarizado)",
+    y        = "Probabilidad de nivel avanzado",
+    color    = ""
+  ) +
+  theme_minimal() +
+  theme(plot.title      = element_text(face = "bold", hjust = 0.5),
+        legend.position = "bottom")
