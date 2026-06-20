@@ -182,6 +182,9 @@ graf_dist_nse <- ggplot(nueva_base2 %>% filter(!is.na(nse_proxy_ajustado)),
   theme(
     plot.title = element_text(face = "bold", size = 14),
     axis.title = element_text(face = "bold")
+  ) +
+  theme(
+    panel.grid = element_blank()
   )
 
 print(graf_dist_nse)
@@ -276,6 +279,31 @@ tab_nse <- nueva_base2 %>%
 print(tab_nse)
 
 
+# Gráfico
+tab_nse_long <- tab_nse %>%
+  pivot_longer(
+    cols = c(lengua, mat),
+    names_to = "materia",
+    values_to = "puntaje"
+  )
+ggplot(tab_nse_long,
+       aes(x = nse_cuartil,
+           y = puntaje,
+           group = materia,
+           color = materia)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3) +
+  labs(
+    title = "Rendimiento promedio según NSE",
+    x = "Cuartil NSE",
+    y = "Puntaje promedio",
+    color = "Materia"
+  ) +
+  theme_minimal()+
+  theme(
+    panel.grid = element_blank()
+  )
+
 # ------------------------------------------------------------
 # 6) TABLA: DESEMPEÑO EN LENGUA SEGÚN LIBROS  (P2)
 # ------------------------------------------------------------
@@ -292,6 +320,24 @@ tab_libros <- nueva_base2 %>%
   )
 print(tab_libros)
 
+# Gráfico
+ggplot(tab_libros,
+       aes(x = libros,
+           y = lengua,
+           group = 1)) +
+  geom_line(linewidth = 1.2,  color = "purple") +
+  geom_point(size = 3, color = "purple") +
+  labs(
+    title = "Puntaje promedio de Lengua según cantidad de libros en el hogar",
+    x = "Cantidad de libros",
+    y = "Puntaje promedio de Lengua"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.line = element_line(),
+    axis.ticks = element_line()
+  )
 
 # ------------------------------------------------------------
 # 7) TABLA: DESEMPEÑO SEGÚN REDES SOCIALES  (P3)
@@ -309,6 +355,30 @@ tab_redes <- nueva_base2 %>%
   )
 print(tab_redes)
 
+# Gráfico
+tab_redes_long <- tab_redes %>%
+  pivot_longer(
+    cols = c(lengua, mat),
+    names_to = "materia",
+    values_to = "puntaje"
+  )
+ggplot(tab_redes_long,
+       aes(x = redes,
+           y = puntaje,
+           fill = materia)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Puntaje promedio según uso de redes sociales",
+    x = "",
+    y = "Puntaje promedio",
+    fill = "Materia"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.line = element_line(),
+    axis.ticks = element_line()
+  )
 
 # ------------------------------------------------------------
 # 8) TABLA: BULLYING Y DISCRIMINACIÓN SEGÚN NSE  (P4)
@@ -383,13 +453,20 @@ graf_bullying <- nueva_base2 %>%
   pivot_longer(cols = -nse_cuartil, names_to = "tipo", values_to = "porcentaje") %>%
   ggplot(aes(x = nse_cuartil, y = porcentaje, fill = tipo)) +
   geom_col(position = "dodge", alpha = 0.85, width = 0.6) +
-  scale_fill_manual(values = c("Discriminación general" = "#999999", "Bullying físico/verbal" = "#D55E00")) +
+  scale_fill_manual(values = c("Discriminación general" = "#C2185B", "Bullying físico/verbal" = "forestgreen")) +
   geom_text(aes(label = sprintf("%.1f%%", porcentaje)), 
             position = position_dodge(width = 0.6), vjust = -0.5, size = 3.5) +
   labs(title = "Incidencia de Violencia Escolar según Estrato Socioeconómico",
        x = "Cuartil Socioeconómico", y = "% de estudiantes afectados", fill = "Tipo de violencia") +
   theme_minimal() +
-  theme(plot.title = element_text(face = "bold"), legend.position = "bottom")
+  theme(plot.title = element_text(face = "bold"), legend.position = "bottom") +
+  theme(
+    panel.grid = element_blank(),
+    axis.line = element_line(),
+    axis.ticks = element_line()
+  )
+
+  
 print(graf_bullying)
 
 # -----------------------------------------------------------------------------
